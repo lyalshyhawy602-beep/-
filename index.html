@@ -269,7 +269,6 @@
     </div>
 
     <script>
-        // الرابط الخاص بـ Google Sheets
         const BASE_URL = "https://opensheet.elk.sh/1IAEbyPwZ8yyAIHdw7xtOXWD8Y0GtL6wXcpUUsyOC8Hg/";
         let productsDb = [];
         let invoiceItems = [];
@@ -416,7 +415,7 @@
             const pBody = document.getElementById("print-body");
             list.innerHTML = ""; pBody.innerHTML = "";
             let tUSD = 0;
-            const sym = document.getElementById("currency").value === "syp" ? "ل.س" : "$";
+            const sym = document.getElementById("currency").value === "syp" ? "ل.س" : "USD";
             
             invoiceItems.forEach((item, i) => {
                 const sub = item.qty * item.price;
@@ -459,9 +458,7 @@
             const cName = document.getElementById('cust-name').value || "زبون";
             document.getElementById('pdf-cust-name').textContent = cName;
             document.getElementById('pdf-date').textContent = document.getElementById('inv-date').value;
-            
             el.style.display = 'block';
-            
             const opt = {
                 margin: 10,
                 filename: `فاتورة_${cName}.pdf`,
@@ -469,17 +466,32 @@
                 html2canvas: { scale: 3, useCORS: true, letterRendering: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-
             html2pdf().set(opt).from(el).save().then(() => {
                 el.style.display = 'none';
             });
         }
+
         function sendToWhatsApp() {
-            if(!invoiceItems.length) return alert("فارغة");
+            if(!invoiceItems.length) return alert("الفاتورة فارغة");
             const cName = document.getElementById('cust-name').value || "زبون";
-            let msg = `*طلبية عصرونية أبو إسماعيل*\nالزبون: ${cName}\n`;
-            invoiceItems.forEach(i => msg += `- ${i.name} (${i.qty})\n`);
-            msg += `\n*الإجمالي: ${document.getElementById("overlay-total").textContent}*`;
+            const date = document.getElementById('inv-date').value;
+            const sym = document.getElementById("currency").value === "syp" ? "ل.س" : "USD";
+            const total = document.getElementById("overlay-total").textContent;
+
+            let msg = `🧾 *فاتورة – عصرونية أبو إسماعيل*\n`;
+            msg += `الاسم : *${cName}* المحترم \n`;
+            msg += `التاريخ: ${date}\n`;
+            msg += `--------------------------\n`;
+
+            invoiceItems.forEach(i => {
+                const subTotal = formatPrice(i.qty * i.price);
+                msg += `🔹 *${i.name}*\n`;
+                msg += `   الكمية: ${i.qty} \n`;
+                msg += `   الإجمالي: ${subTotal} ${sym}\n`;
+            });
+
+            msg += `--------------------------\n`;
+            msg += `*إجمالي الفاتورة: ${total}*`;
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
     </script>
